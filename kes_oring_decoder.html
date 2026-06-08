@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Komatsu KES O-Ring Decoder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --bg: #0b1721;
+            --bg-alt: #111d2a;
+            --card: #182635;
+            --accent: #00b4d8;
+            --accent-soft: rgba(0,180,216,0.15);
+            --accent-strong: #48cae4;
+            --text: #f5f7fb;
+            --muted: #9aa7bd;
+            --danger: #ff6b6b;
+            --border-subtle: #243447;
+            --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+            --radius-lg: 14px;
+            --radius-md: 10px;
+            --radius-pill: 999px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1b2a3a 0, #050910 55%, #020308 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            padding: 32px 16px;
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 1100px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.6));
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.04);
+            box-shadow: var(--shadow-soft);
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pane {
+            padding: 24px 26px;
+        }
+
+        .pane--left {
+            border-right: 1px solid rgba(255,255,255,0.04);
+        }
+
+        @media (max-width: 900px) {
+            .pane--left {
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,0.04);
+            }
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .app-title {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .app-title h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .app-title span {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(255,255,255,0.12);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0,0,0,0.35);
+        }
+
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px rgba(72,202,228,0.9);
+        }
+
+        .card {
+            background: radial-gradient(circle at top left, rgba(255,255,255,0.06), rgba(0,0,0,0.7));
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 18px 18px 16px;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+        }
+
+        .pill {
+            padding: 3px 9px;
+            border-radius: var(--radius-pill);
+            font-size: 0.7rem;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--muted);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+            margin-bottom: 8px;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        label {
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        input[type="text"] {
+            background: rgba(3,9,18,0.9);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 9px 11px;
+            color: var(--text);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-strong);
+            box-shadow: 0 0 0 1px rgba(72,202,228,0.4);
+            background: rgba(3,12,24,0.95);
+        }
+
+        .helper-text {
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
+        .button-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        button {
+            border: none;
+            border-radius: var(--radius-pill);
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #021018;
+            box-shadow: 0 10px 22px rgba(0,180,216,0.45);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(0,180,216,0.6);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.04);
+        }
+
+        .btn-icon {
+            font-size: 1rem;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 9px;
+            border-radius: var(--radius-pill);
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #2ecc71;
+            box-shadow: 0 0 8px rgba(46,204,113,0.9);
+        }
+
+        .status-dot--error {
+            background: var(--danger);
+            box-shadow: 0 0 8px rgba(255,107,107,0.9);
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .results-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+        }
+
+        .results-meta {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 600px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .result-chip {
+            background: rgba(0,0,0,0.45);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 8px 9px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .result-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .result-value {
+            font-size: 0.9rem;
+        }
+
+        .result-value-strong {
+            color: var(--accent-strong);
+        }
+
+        .result-note {
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
+        .result-badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--muted);
+        }
+
+        .tag--accent {
+            border-color: var(--accent-strong);
+            color: var(--accent-strong);
+            background: rgba(0,180,216,0.08);
+        }
+
+        .tag--warn {
+            border-color: #f1c40f;
+            color: #f1c40f;
+            background: rgba(241,196,15,0.08);
+        }
+
+        .tag--danger {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(255,107,107,0.08);
+        }
+
+        .explanation {
+            margin-top: 10px;
+            padding: 10px 11px;
+            border-radius: var(--radius-md);
+            background: rgba(0,0,0,0.45);
+            border: 1px dashed rgba(255,255,255,0.12);
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .explanation strong {
+            color: var(--accent-strong);
+            font-weight: 500;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 14px;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .sidebar-list li {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-list code {
+            font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.78rem;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 5px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--accent-strong);
+        }
+
+        .sidebar-note {
+            font-size: 0.75rem;
+            color: var(--muted);
+            padding: 9px 10px;
+            border-radius: var(--radius-md);
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .sidebar-note strong {
+            color: var(--accent-strong);
+            font-weight: 500;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .error-text {
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <!-- LEFT PANE: INPUT + RESULTS -->
+    <div class="pane pane--left">
+        <header class="app-header">
+            <div class="app-title">
+                <h1>Komatsu KES O‑Ring Decoder</h1>
+                <span>Static prototype • KES 07000 / 07002 / 02890‑02895 rules</span>
+            </div>
+            <div class="badge">
+                <span class="badge-dot"></span>
+                PartsBuddy • Draft
+            </div>
+        </header>
+
+        <!-- INPUT CARD -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title">Input</div>
+                <div class="pill">KES Part Number</div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="partNumber">Part number</label>
+                    <input id="partNumber" type="text" placeholder="e.g. 07000-22034 or 07002-52014">
+                    <div class="helper-text">
+                        KES O‑rings start with <code>0</code> and use classification codes like <code>07000</code>, <code>07002</code>, <code>02890</code>–<code>02895</code>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button class="btn-primary" onclick="decodePartNumber()">
+                    <span class="btn-icon">⏵</span>
+                    <span>Decode O‑ring</span>
+                </button>
+                <button class="btn-ghost" onclick="clearForm()">
+                    <span class="btn-icon">✕</span>
+                    <span>Clear</span>
+                </button>
+            </div>
+
+            <div class="status-bar">
+                <div id="statusText" class="status-pill">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusLabel">Waiting for input…</span>
+                </div>
+                <div class="muted">
+                    Source: Komatsu Parts Management Guide (KES O‑ring tables)
+                </div>
+            </div>
+        </section>
+
+        <!-- RESULTS CARD -->
+        <section class="card">
+            <div class="results-header">
+                <div class="results-title">Decoded details</div>
+                <div class="results-meta" id="resultsMeta">No part decoded yet.</div>
+            </div>
+
+            <div id="resultsContainer" style="display:none;">
+                <div class="results-grid">
+                    <div class="result-chip">
+                        <div class="result-label">Category</div>
+                        <div class="result-value" id="resCategory">–</div>
+                        <div class="result-note" id="resClassificationNote">–</div>
+                    </div>
+
+                    <div class="result-chip">
+                        <div class="result-label">Classification code</div>
+                        <div class="result-value result-value-strong" id="resClassification">–</div>
+                        <div class="result-note">
+                            First 5 digits of KES part number (e.g. <code>07000</code>, <code>07002</code>, <code>02890</code>).
+                        </div>
+                    </div>
+
+                    <div class="result-chip">
+                        <div class="result-label">Material</div>
+                        <div class="result-value" id="resMaterial">–</div>
+                        <div class="result-note" id="resMaterialNote">–</div>
+                    </div>
+
+                    <div class="result-chip">
+                        <div class="result-label">Color code</div>
+                        <div class="result-value" id="resColor">–</div>
+                        <div class="result-note">
+                            Color dots painted on the ring indicate material/usage class.
+                        </div>
+                    </div>
+
+                    <div class="result-chip">
+                        <div class="result-label">Inner diameter</div>
+                        <div class="result-value" id="resInnerDiameter">–</div>
+                        <div class="result-note" id="resInnerDiameterNote">–</div>
+                    </div>
+
+                    <div class="result-chip">
+                        <div class="result-label">Thickness</div>
+                        <div class="result-value" id="resThickness">–</div>
+                        <div class="result-note" id="resThicknessNote">–</div>
+                    </div>
+
+                    <div class="result-chip">
+                        <div class="result-label">Temperature range</div>
+                        <div class="result-value" id="resTemperature">–</div>
+                        <div class="result-note">
+                            Approximate recommended temperature range based on material family.
+                        </div>
+                    </div>
+
+                    <div class="result-chip">
+                        <div class="result-label">Pressure / usage</div>
+                        <div class="result-value" id="resPressure">–</div>
+                        <div class="result-note" id="resPressureNote">–</div>
+                    </div>
+                </div>
+
+                <div class="result-badge-row" id="resultTags"></div>
+
+                <div class="explanation" id="resExplanation">
+                    Enter a valid KES O‑ring part number above to see a breakdown of material, dimensions, and usage.
+                </div>
+            </div>
+
+            <div id="noResultsContainer" class="muted" style="margin-top:6px;">
+                When you decode a part, a structured breakdown will appear here.
+            </div>
+        </section>
+    </div>
+
+    <!-- RIGHT PANE: REFERENCE / NOTES -->
+    <div class="pane">
+        <div class="sidebar-section-title">Supported KES O‑ring formats</div>
+        <ul class="sidebar-list">
+            <li><strong>Classification codes:</strong> <code>07000</code>, <code>07002</code>, <code>02890</code>–<code>02895</code></li>
+            <li><strong>General pattern:</strong> <code>CCCCC-M-DDDD</code></li>
+            <li>Where:
+                <ul style="margin:4px 0 0 14px; padding-left:0;">
+                    <li><code>CCCCC</code> = classification (e.g. <code>07000</code>)</li>
+                    <li><code>M</code> = material code digit</li>
+                    <li><code>DDDD…</code> = dimension code (thickness grade + inner diameter)</li>
+                </ul>
+            </li>
+            <li>Examples:
+                <ul style="margin:4px 0 0 14px; padding-left:0;">
+                    <li><code>07000-22034</code></li>
+                    <li><code>07002-52014</code></li>
+                    <li><code>02890-12018</code></li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="sidebar-section-title">Material codes (KES O‑rings)</div>
+        <ul class="sidebar-list">
+            <li><code>0</code> → NBR‑1A (Nitrile rubber)</li>
+            <li><code>1</code> → NBR‑1B (Nitrile rubber)</li>
+            <li><code>2</code> → FR‑1B (Fluororubber)</li>
+            <li><code>3</code> → FR‑1A (Fluororubber)</li>
+            <li><code>4</code> → NBR‑1D (Low‑temp nitrile)</li>
+            <li><code>5</code> → NBR‑1E (Low‑temp nitrile)</li>
+            <li><code>6</code> → SR‑1 (Silicone rubber)</li>
+        </ul>
+
+        <div class="sidebar-section-title">Thickness grades (07000 / 02890‑02895)</div>
+        <ul class="sidebar-list">
+            <li><code>1</code> → 1.5 mm</li>
+            <li><code>2</code> → 2.0–2.5 mm (depends on ID range)</li>
+            <li><code>3</code> → 3.0 mm</li>
+            <li><code>5</code> → 5.0 mm</li>
+            <li><code>6</code> → 6.0 mm</li>
+            <li><code>7</code> → 6.8–7.1 mm</li>
+        </ul>
+
+        <div class="sidebar-note">
+            <strong>How this prototype works:</strong><br>
+            It focuses only on KES O‑rings and uses the Komatsu KES tables to decode:
+            classification, material, color dots, inner diameter, thickness grade, and approximate
+            temperature/pressure usage. The same pattern can later be extended to other KES parts,
+            chassis parts, and engine parts.
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATA TABLES ---------------------------------------------------------
+
+    const MATERIALS = {
+        "0": {
+            code: "0",
+            name: "NBR‑1A",
+            family: "Nitrile rubber",
+            tempRange: "-30 to 120°C",
+            notes: "Standard nitrile; general-purpose hydraulic use."
+        },
+        "1": {
+            code: "1",
+            name: "NBR‑1B",
+            family: "Nitrile rubber",
+            tempRange: "-30 to 120°C",
+            notes: "Nitrile variant; similar temperature range, different formulation."
+        },
+        "2": {
+            code: "2",
+            name: "FR‑1B",
+            family: "Fluororubber",
+            tempRange: "-20 to 150°C",
+            notes: "Fluororubber; high temperature and chemical resistance."
+        },
+        "3": {
+            code: "3",
+            name: "FR‑1A",
+            family: "Fluororubber",
+            tempRange: "-20 to 150°C",
+            notes: "Fluororubber; high temperature and chemical resistance."
+        },
+        "4": {
+            code: "4",
+            name: "NBR‑1D",
+            family: "Low‑temperature nitrile",
+            tempRange: "-50 to 120°C",
+            notes: "Low‑temperature nitrile; improved cold performance."
+        },
+        "5": {
+            code: "5",
+            name: "NBR‑1E",
+            family: "Low‑temperature nitrile",
+            tempRange: "-50 to 120°C",
+            notes: "Low‑temperature nitrile; improved cold performance."
+        },
+        "6": {
+            code: "6",
+            name: "SR‑1",
+            family: "Silicone rubber",
+            tempRange: "-50 to 120°C",
+            notes: "Silicone; good low‑temperature flexibility."
+        }
+    };
+
+    // Thickness grade → thickness (mm) for 07000 / 02890‑02895
+    const THICKNESS_GRADES = {
+        "1": { thickness: 1.5, description: "Thin section O‑ring" },
+        "2": { thickness: 2.0, description: "Standard section (2.0–2.5 mm depending on ID)" },
+        "3": { thickness: 3.0, description: "Medium section O‑ring" },
+        "5": { thickness: 5.0, description: "Thick section O‑ring" },
+        "6": { thickness: 6.0, description: "Very thick section O‑ring" },
+        "7": { thickness: 6.9, description: "Special thick section (approx. 6.8–7.1 mm)" }
+    };
+
+    // 07002: inner diameter lookup (dimension code = two-digit grade)
+    const ID_LOOKUP_07002 = {
+        "08": 5.4,
+        "10": 7.4,
+        "12": 8.9,
+        "14": 10.9,
+        "16": 12.9,
+        "18": 14.9,
+        "20": 16.7,
+        "24": 20.7,
+        "30": 26.0,
+        "33": 29.7,
+        "36": 32.7,
+        "42": 38.7,
+        "52": 48.2
+    };
+
+    // Color code mapping (simplified from tables)
+    const COLOR_CODES = {
+        // 07000 classification
+        "07000": {
+            "0": "Blue: 1 dot",
+            "1": "Blue: 2 dots",
+            "2": "Green: 2 dots",
+            "3": "Green: 1 dot",
+            "4": "Red: 1 dot",
+            "5": "Red: 2 dots",
+            "6": "Totally orange"
+        },
+        // 02890–02894 group
+        "0289x": {
+            "0": "Yellow: 2 dots, Green: 1 dot",
+            "4": "White: 1 dot"
+        },
+        // 07002 classification
+        "07002": {
+            "0": "White: 1 dot",
+            "1": "White: 2 dots",
+            "2": "Yellow: 2 dots",
+            "3": "Orange: 1 dot",
+            "4": "Orange: 2 dots",
+            "6": "Totally blue"
+        }
+    };
+
+    // --- CORE DECODER --------------------------------------------------------
+
+    function decodePartNumber() {
+        const inputEl = document.getElementById("partNumber");
+        const raw = (inputEl.value || "").trim().toUpperCase();
+
+        if (!raw) {
+            setStatus("Waiting for input…", false, false);
+            showNoResults("Enter a KES O‑ring part number to decode.");
+            return;
+        }
+
+        // Normalize: allow digits, letters, hyphen
+        const normalized = raw.replace(/\s+/g, "");
+        const match = normalized.match(/^(\d{5})-?([0-6])([0-9A-Z]{3,5})$/);
+
+        if (!match) {
+            setStatus("Invalid format for KES O‑ring. Expected CCCCC-M-DDDD pattern.", true, true);
+            showNoResults("The part number format doesn’t match supported KES O‑ring patterns.");
+            return;
+        }
+
+        const classification = match[1]; // first 5 digits
+        const materialCode = match[2];   // one digit
+        const dimCode = match[3];        // remaining 3–5 chars
+
+        // Only handle KES O-rings for now
+        if (!isKesOringClassification(classification)) {
+            setStatus("Part is KES, but not a supported O‑ring classification.", true, false);
+            showNoResults("This prototype only decodes KES O‑rings (07000, 07002, 02890–02895).");
+            return;
+        }
+
+        const result = decodeKesOring(classification, materialCode, dimCode);
+
+        if (result.error) {
+            setStatus(result.error, true, true);
+            showNoResults(result.error);
+            return;
+        }
+
+        // Success
+        setStatus("Decoded KES O‑ring successfully.", false, false);
+        renderResults(raw, result);
+    }
+
+    function isKesOringClassification(classification) {
+        if (classification === "07000" || classification === "07002") return true;
+        if (classification.startsWith("0289")) return true; // 02890–02895 group
+        return false;
+    }
+
+    function decodeKesOring(classification, materialCode, dimCode) {
+        const res = {
+            category: "KES O‑Ring",
+            classification,
+            material: null,
+            materialNote: "",
+            color: null,
+            innerDiameter: null,
+            innerDiameterNote: "",
+            thickness: null,
+            thicknessNote: "",
+            temperature: null,
+            pressure: null,
+            pressureNote: "",
+            tags: [],
+            explanation: ""
+        };
+
+        // Material
+        const mat = MATERIALS[materialCode];
+        if (!mat) {
+            return { error: "Unknown material code for KES O‑ring: " + materialCode };
+        }
+        res.material = `${mat.name} (${mat.family})`;
+        res.materialNote = mat.notes;
+        res.temperature = mat.tempRange;
+
+        // Color code
+        let colorTableKey = classification;
+        if (classification.startsWith("0289")) {
+            colorTableKey = "0289x";
+        }
+        const colorTable = COLOR_CODES[colorTableKey] || {};
+        res.color = colorTable[materialCode] || "Color code not defined for this material/classification in current tables.";
+
+        // Pressure rating (very simplified heuristic)
+        if (res.color.includes("2 dot") || res.color.includes("2 dots") || res.color.includes("Totally")) {
+            res.pressure = "High pressure / heavy duty";
+            res.pressureNote = "Two dots or solid color usually indicate higher pressure or more demanding service.";
+        } else if (materialCode === "6") {
+            res.pressure = "Low pressure / special application";
+            res.pressureNote = "Code 6 is often used for low‑pressure or special conditions.";
+        } else {
+            res.pressure = "Standard pressure";
+            res.pressureNote = "Single‑dot colors typically indicate standard pressure ranges.";
+        }
+
+        // Dimensions
+        if (classification === "07002") {
+            // 07002: dimCode = thicknessGrade + two-digit ID grade
+            if (dimCode.length < 3) {
+                return { error: "Dimension code too short for 07002 O‑ring." };
+            }
+            const thicknessGrade = dimCode[0];
+            const idGrade = dimCode.slice(1, 3); // two digits
+
+            const thickInfo = THICKNESS_GRADES[thicknessGrade];
+            if (!thickInfo) {
+                res.thickness = "Unknown";
+                res.thicknessNote = "Thickness grade not found in table.";
+            } else {
+                res.thickness = `${thickInfo.thickness.toFixed(1)} mm`;
+                res.thicknessNote = thickInfo.description;
+            }
+
+            const idValue = ID_LOOKUP_07002[idGrade];
+            if (!idValue) {
+                res.innerDiameter = "Unknown";
+                res.innerDiameterNote = "Inner diameter grade not found in 07002 table.";
+            } else {
+                res.innerDiameter = `${idValue.toFixed(1)} mm`;
+                res.innerDiameterNote = `Inner diameter from 07002 lookup table (grade ${idGrade}).`;
+            }
+
+            res.explanation = "This O‑ring uses the 07002 classification: inner diameter is taken from a lookup table, " +
+                "and the first digit of the dimension code is the thickness grade.";
+        } else {
+            // 07000 and 02890–02895: dimCode = thicknessGrade + ID(mm)
+            if (dimCode.length < 2) {
+                return { error: "Dimension code too short for KES O‑ring." };
+            }
+            const thicknessGrade = dimCode[0];
+            const idDigits = dimCode.slice(1);
+
+            const thickInfo = THICKNESS_GRADES[thicknessGrade];
+            if (!thickInfo) {
+                res.thickness = "Unknown";
+                res.thicknessNote = "Thickness grade not found in table.";
+            } else {
+                res.thickness = `${thickInfo.thickness.toFixed(1)} mm`;
+                res.thicknessNote = thickInfo.description;
+            }
+
+            const idValue = parseInt(idDigits, 10);
+            if (isNaN(idValue)) {
+                res.innerDiameter = "Unknown";
+                res.innerDiameterNote = "Inner diameter digits are not numeric.";
+            } else {
+                res.innerDiameter = `${idValue} mm`;
+                res.innerDiameterNote = "Inner diameter is taken directly from the remaining digits of the dimension code.";
+            }
+
+            res.explanation = "For this classification, the first digit of the dimension code is the thickness grade, " +
+                "and the remaining digits represent the inner diameter in millimetres.";
+        }
+
+        // Tags
+        res.tags.push(`Material: ${mat.name}`);
+        res.tags.push(`Family: ${mat.family}`);
+        res.tags.push(`Temp: ${mat.tempRange}`);
+        if (classification === "07000") res.tags.push("Classification: 07000 (standard KES O‑ring)");
+        if (classification === "07002") res.tags.push("Classification: 07002 (lookup‑based ID)");
+        if (classification.startsWith("0289")) res.tags.push("Classification: 02890–02895 group");
+
+        return res;
+    }
+
+    // --- UI HELPERS ----------------------------------------------------------
+
+    function setStatus(message, isError, isHardError) {
+        const statusLabel = document.getElementById("statusLabel");
+        const statusDot = document.getElementById("statusDot");
+
+        statusLabel.textContent = message || "";
+        if (isError) {
+            statusDot.classList.add("status-dot--error");
+        } else {
+            statusDot.classList.remove("status-dot--error");
+        }
+
+        if (isHardError) {
+            statusLabel.classList.add("error-text");
+        } else {
+            statusLabel.classList.remove("error-text");
+        }
+    }
+
+    function showNoResults(message) {
+        document.getElementById("resultsContainer").style.display = "none";
+        document.getElementById("noResultsContainer").style.display = "block";
+        document.getElementById("noResultsContainer").textContent = message || "No results.";
+        document.getElementById("resultsMeta").textContent = "No part decoded.";
+    }
+
+    function renderResults(rawInput, res) {
+        document.getElementById("resultsContainer").style.display = "block";
+        document.getElementById("noResultsContainer").style.display = "none";
+
+        document.getElementById("resultsMeta").textContent = `Decoded from: ${rawInput}`;
+
+        document.getElementById("resCategory").textContent = res.category;
+        document.getElementById("resClassification").textContent = res.classification;
+        document.getElementById("resClassificationNote").textContent =
+            "KES part number with first digit 0 and classification for O‑rings.";
+
+        document.getElementById("resMaterial").textContent = res.material || "–";
+        document.getElementById("resMaterialNote").textContent = res.materialNote || "–";
+
+        document.getElementById("resColor").textContent = res.color || "–";
+
+        document.getElementById("resInnerDiameter").textContent = res.innerDiameter || "–";
+        document.getElementById("resInnerDiameterNote").textContent = res.innerDiameterNote || "–";
+
+        document.getElementById("resThickness").textContent = res.thickness || "–";
+        document.getElementById("resThicknessNote").textContent = res.thicknessNote || "–";
+
+        document.getElementById("resTemperature").textContent = res.temperature || "–";
+        document.getElementById("resPressure").textContent = res.pressure || "–";
+        document.getElementById("resPressureNote").textContent = res.pressureNote || "–";
+
+        const tagsContainer = document.getElementById("resultTags");
+        tagsContainer.innerHTML = "";
+        (res.tags || []).forEach(tag => {
+            const span = document.createElement("span");
+            span.className = "tag tag--accent";
+            span.textContent = tag;
+            tagsContainer.appendChild(span);
+        });
+
+        document.getElementById("resExplanation").textContent = res.explanation || "";
+    }
+
+    function clearForm() {
+        document.getElementById("partNumber").value = "";
+        setStatus("Waiting for input…", false, false);
+        showNoResults("Enter a KES O‑ring part number to decode.");
+    }
+</script>
+</body>
+</html>
